@@ -10,7 +10,7 @@ const app = new Koa()
 // eslint-disable-next-line no-new
 new Pug({
   viewPath: path.resolve(__dirname, './views'),
-  app, // Binding `ctx.render()`, equals to pug.use(app)
+  app,
 })
 
 app.use(async (ctx) => {
