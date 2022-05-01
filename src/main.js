@@ -26,10 +26,15 @@ app.use(async (ctx) => {
 
 app.ws.use(
   route.all('/ws', (ctx) => {
-    ctx.websocket.on('message', (message) => {
-      console.log(message.toString())
-
-      ctx.websocket.send('Hello, Client!')
+    ctx.websocket.on('message', (data) => {
+      const { nickname, message } = JSON.parse(data.toString())
+      console.log(nickname, message)
+      ctx.websocket.send(
+        JSON.stringify({
+          nickname: nickname,
+          message: message,
+        })
+      )
     })
   })
 )
