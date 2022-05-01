@@ -2,6 +2,12 @@
 // IIFE
 ;(() => {
   const socket = new WebSocket(`ws://${window.location.host}/ws`)
-})()
 
-alert('Client.js loaded')
+  socket.addEventListener('open', () => {
+    socket.send('Hello Server!')
+  })
+
+  socket.addEventListener('message', () => {
+    alert(event.data)
+  })
+})()

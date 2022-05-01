@@ -26,9 +26,10 @@ app.use(async (ctx) => {
 
 app.ws.use(
   route.all('/ws', (ctx) => {
-    ctx.websocket.send('Hello World')
     ctx.websocket.on('message', (message) => {
-      console.log(message)
+      console.log(message.toString())
+
+      ctx.websocket.send('Hello, Client!')
     })
   })
 )
