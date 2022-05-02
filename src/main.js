@@ -29,12 +29,21 @@ app.ws.use(
     ctx.websocket.on('message', (data) => {
       const { nickname, message } = JSON.parse(data.toString())
       console.log(nickname, message)
-      ctx.websocket.send(
-        JSON.stringify({
-          nickname: nickname,
-          message: message,
-        })
-      )
+
+      const { server } = app.ws
+
+      if (!server) {
+        return
+      }
+
+      server.clients.forEach((client) => {
+        client.send(
+          JSON.stringify({
+            nickname: nickname,
+            message: message,
+          })
+        )
+      })
     })
   })
 )
