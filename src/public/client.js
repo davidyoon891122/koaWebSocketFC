@@ -53,13 +53,25 @@
     inputEl.value = ''
   })
 
-  socket.addEventListener('message', (event) => {
-    chats.push(JSON.parse(event.data))
+  const drawChats = () => {
     chatsEl.innerHTML = ''
     chats.forEach(({ nickname, message }) => {
       const div = document.createElement('div')
       div.innerText = `${nickname}: ${message}`
       chatsEl.appendChild(div)
     })
+  }
+
+  socket.addEventListener('message', (event) => {
+    const { type, payload } = JSON.parse(event.data)
+
+    if (type === 'sync') {
+      const { chats: syncedChats } = payload
+      chats.push(...syncedChats)
+    } else if (type === 'chat') {
+      const chat = payload
+      chats.push(chat)
+    }
+    drawChats()
   })
 })()

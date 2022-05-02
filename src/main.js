@@ -7,6 +7,7 @@ const route = require('koa-route')
 const serve = require('koa-static')
 const mount = require('koa-mount')
 const websockify = require('koa-websocket')
+const mongoClient = require('./mongo')
 
 // the magic happens right here
 const app = websockify(new Koa())
@@ -24,10 +25,51 @@ app.use(async (ctx) => {
   await ctx.render('main')
 })
 
+/* eslint-disable-next-line no-underscore-dangle */
+const _client = mongoClient.connect()
+
+async function getChatsCollection() {
+  const client = await _client
+  return client.db('chat').collection('chats')
+}
+
+/**
+ * @typedef Chat
+ * @property {string} nickname
+ * @property {string} message
+ */
+
 app.ws.use(
-  route.all('/ws', (ctx) => {
-    ctx.websocket.on('message', (data) => {
-      const { nickname, message } = JSON.parse(data.toString())
+  route.all('/ws', async (ctx) => {
+    const chatsCollection = await getChatsCollection()
+    const chatsCursor = chatsCollection.find(
+      {},
+      {
+        sort: {
+          createAt: 1,
+        },
+      }
+    )
+
+    const chats = await chatsCursor.toArray()
+    ctx.websocket.send(
+      JSON.stringify({
+        type: 'sync',
+        payload: {
+          chats,
+        },
+      })
+    )
+
+    ctx.websocket.on('message', async (data) => {
+      /** @type {Chat} */
+      const chat = JSON.parse(data.toString())
+      chatsCollection.insertOne({
+        ...chat,
+        createdAt: new Date(),
+      })
+
+      const { nickname, message } = chat
       console.log(nickname, message)
 
       const { server } = app.ws
@@ -39,8 +81,11 @@ app.ws.use(
       server.clients.forEach((client) => {
         client.send(
           JSON.stringify({
-            nickname: nickname,
-            message: message,
+            type: 'chat',
+            payload: {
+              message,
+              nickname,
+            },
           })
         )
       })
