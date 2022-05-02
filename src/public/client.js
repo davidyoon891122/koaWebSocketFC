@@ -23,11 +23,30 @@
    */
   const chats = []
 
+  const adjectives = ['멋진', '훌륭한', '친절한', '새침한']
+  const animals = ['개', '고양이', '양', '사자', '돌고래', '독수리']
+
+  /**
+   * @param {string[]} array
+   * @returns {string}
+   */
+  function pickRandom(array) {
+    const randomIdx = Math.floor(Math.random() * array.length)
+    const result = array[randomIdx]
+    if (!result) {
+      throw new Error('array length is 0')
+    }
+
+    return result
+  }
+
+  const myNickname = `${pickRandom(adjectives)} ${pickRandom(animals)}`
+
   formEl.addEventListener('submit', (event) => {
     event.preventDefault()
     socket.send(
       JSON.stringify({
-        nickname: '데이비드윤',
+        nickname: myNickname,
         message: inputEl.value,
       })
     )
